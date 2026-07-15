@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Contract</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1 id="contractTitle">Contract</h1>
+  <span>
+    <a href="index.html">&larr; All contracts</a>
+    <button class="icon-btn" id="logoutBtn" style="color:#fff;">Log out</button>
+  </span>
+</header>
+<main>
+  <div class="card">
+    <div id="viewerWrap"></div>
+  </div>
+
+  <div class="card">
+    <div class="top-actions">
+      <h2 style="margin:0">Signatures</h2>
+      <button class="btn-primary" id="addEntryBtn" style="margin:0">+ Add entry</button>
+    </div>
+    <table id="entryTable">
+      <thead>
+        <tr><th>Name</th><th>ID Number</th><th>Signature</th><th>Date</th><th></th></tr>
+      </thead>
+      <tbody id="entryBody"></tbody>
+    </table>
+    <div class="empty hidden" id="emptyEntries">No entries yet. Add the first signature.</div>
+  </div>
+</main>
+
+<!-- Add entry modal -->
+<div class="modal-backdrop hidden" id="entryModal">
+  <div class="modal">
+    <div class="card" style="margin:0; box-shadow:none;">
+      <div class="top-actions">
+        <h2 style="margin:0">Add entry</h2>
+        <button class="icon-btn" id="closeModal">&times;</button>
+      </div>
+      <form id="entryForm">
+        <label for="name">Full name</label>
+        <input type="text" id="name" required>
+        <label for="idNumber">ID number</label>
+        <input type="text" id="idNumber" required>
+        <label>Signature</label>
+        <canvas id="sigPad"></canvas>
+        <div class="sig-actions">
+          <button type="button" class="btn-secondary" id="clearSig">Clear</button>
+        </div>
+        <button type="submit" class="btn-primary" id="saveEntryBtn">Save entry</button>
+        <div class="error-text hidden" id="entryError"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Signature zoom modal -->
+<div class="modal-backdrop hidden" id="sigZoomModal">
+  <div class="modal">
+    <div class="card" style="margin:0; box-shadow:none; text-align:center;">
+      <div class="top-actions">
+        <h2 style="margin:0">Signature</h2>
+        <button class="icon-btn" id="closeSigZoom">&times;</button>
+      </div>
+      <img id="sigZoomImg" style="max-width:100%; border:1px solid #eee; border-radius:8px;">
+    </div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script src="contract.js"></script>
+</body>
+</html>

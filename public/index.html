@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Contracts</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Contracts</h1>
+  <button class="icon-btn" id="logoutBtn" style="color:#fff;">Log out</button>
+</header>
+<main>
+  <div class="card">
+    <h2>Upload a contract</h2>
+    <form id="uploadForm">
+      <label for="title">Title (optional)</label>
+      <input type="text" id="title" name="title" placeholder="e.g. Lease Agreement - Unit 4">
+      <label for="file">Contract file (PDF or image)</label>
+      <input type="file" id="file" name="file" accept=".pdf,image/*" required>
+      <button type="submit" class="btn-primary" id="uploadBtn">Upload contract</button>
+      <div class="error-text hidden" id="uploadError"></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Your contracts</h2>
+    <ul class="contract-list" id="contractList"></ul>
+    <div class="empty hidden" id="emptyState">No contracts uploaded yet.</div>
+  </div>
+</main>
+
+<script src="auth.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

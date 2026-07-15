@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Log in</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Contracts</h1>
+</header>
+<main>
+  <div class="card">
+    <h2>Log in</h2>
+    <form id="loginForm">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required autofocus>
+      <button type="submit" class="btn-primary" id="loginBtn">Log in</button>
+      <div class="error-text hidden" id="loginError"></div>
+    </form>
+  </div>
+</main>
+<script src="login.js"></script>
+</body>
+</html>
