@@ -22,6 +22,10 @@ const deleteCount = document.getElementById('deleteCount');
 const deleteError = document.getElementById('deleteError');
 let entryCount = 0;
 
+const renameBtn = document.getElementById('renameBtn');
+const renameError = document.getElementById('renameError');
+const titleHeading = document.getElementById('titleHeading');
+
 if (!contractId) {
   document.body.innerHTML = '<main><p>No contract specified.</p></main>';
   throw new Error('Missing contract id');
@@ -39,6 +43,12 @@ function fmtDate(iso) {
     ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
+function setTitle(title) {
+  document.title = title;
+  contractTitle.textContent = title;
+  titleHeading.textContent = title;
+}
+
 async function loadContract() {
   const res = await apiFetch(`/api/contracts/${contractId}`);
   if (!res.ok) {
@@ -46,8 +56,7 @@ async function loadContract() {
     return;
   }
   const contract = await res.json();
-  document.title = contract.title;
-  contractTitle.textContent = contract.title;
+  setTitle(contract.title);
 
   const fileUrl = `/api/contracts/${contractId}/file`;
   if (contract.mimeType === 'application/pdf') {
@@ -100,6 +109,42 @@ entryBody.addEventListener('click', async (e) => {
     if (!confirm('Delete this entry?')) return;
     await apiFetch(`/api/entries/${e.target.dataset.id}`, { method: 'DELETE' });
     loadEntries();
+  }
+});
+
+renameBtn.addEventListener('click', async () => {
+  renameError.classList.add('hidden');
+
+  const current = titleHeading.textContent;
+  const next = prompt('New name for this contract:', current);
+  if (next === null || next.trim() === current) return;
+  if (!next.trim()) {
+    renameError.textContent = 'The name cannot be empty.';
+    renameError.classList.remove('hidden');
+    return;
+  }
+
+  renameBtn.disabled = true;
+  renameBtn.textContent = 'Saving...';
+
+  try {
+    const res = await apiFetch(`/api/contracts/${contractId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: next })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Could not rename');
+    }
+    const updated = await res.json();
+    setTitle(updated.title);
+  } catch (err) {
+    renameError.textContent = err.message;
+    renameError.classList.remove('hidden');
+  } finally {
+    renameBtn.disabled = false;
+    renameBtn.textContent = 'Rename';
   }
 });
 

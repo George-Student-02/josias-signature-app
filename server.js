@@ -133,6 +133,21 @@ app.get('/api/contracts/:id', requireAuth, async (req, res) => {
   res.json(toClientContract(contract));
 });
 
+app.patch('/api/contracts/:id', requireAuth, async (req, res) => {
+  const { title } = req.body || {};
+  if (!title || !title.trim()) return res.status(400).json({ error: 'Title cannot be empty' });
+
+  const { data, error } = await supabase
+    .from('contracts')
+    .update({ title: title.trim() })
+    .eq('id', req.params.id)
+    .select()
+    .single();
+  if (error || !data) return res.status(404).json({ error: 'Contract not found' });
+
+  res.json(toClientContract(data));
+});
+
 app.get('/api/contracts/:id/file', requireAuth, async (req, res) => {
   const { data: contract, error } = await supabase
     .from('contracts')
