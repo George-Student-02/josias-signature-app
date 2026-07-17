@@ -228,6 +228,21 @@ canvas#sigPad {
   overflow: auto;
 }
 
+.danger-zone {
+  border: 1px solid #f3d2ce;
+}
+
+.danger-zone h2 {
+  color: #c0392b;
+}
+
+.danger-note {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
 .hidden { display: none !important; }
 
 .error-text {

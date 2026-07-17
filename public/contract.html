@@ -32,6 +32,16 @@
     </table>
     <div class="empty hidden" id="emptyEntries">No entries yet. Add the first signature.</div>
   </div>
+
+  <div class="card danger-zone">
+    <h2>Delete this contract</h2>
+    <p class="danger-note">
+      Permanently deletes the contract file and <strong id="deleteCount">all its signatures</strong>.
+      This cannot be undone.
+    </p>
+    <button class="btn-danger" id="deleteContractBtn">Delete contract</button>
+    <div class="error-text hidden" id="deleteError"></div>
+  </div>
 </main>
 
 <!-- Add entry modal -->

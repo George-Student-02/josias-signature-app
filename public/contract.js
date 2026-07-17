@@ -17,6 +17,11 @@ const sigZoomModal = document.getElementById('sigZoomModal');
 const sigZoomImg = document.getElementById('sigZoomImg');
 const closeSigZoom = document.getElementById('closeSigZoom');
 
+const deleteContractBtn = document.getElementById('deleteContractBtn');
+const deleteCount = document.getElementById('deleteCount');
+const deleteError = document.getElementById('deleteError');
+let entryCount = 0;
+
 if (!contractId) {
   document.body.innerHTML = '<main><p>No contract specified.</p></main>';
   throw new Error('Missing contract id');
@@ -58,6 +63,9 @@ async function loadEntries() {
   const res = await apiFetch(`/api/contracts/${contractId}/entries`);
   const entries = await res.json();
 
+  entryCount = entries.length;
+  deleteCount.textContent = entryCount === 1 ? 'its 1 signature' : `all ${entryCount} of its signatures`;
+
   entryBody.innerHTML = '';
   emptyEntries.classList.toggle('hidden', entries.length > 0);
 
@@ -83,6 +91,39 @@ entryBody.addEventListener('click', async (e) => {
     if (!confirm('Delete this entry?')) return;
     await apiFetch(`/api/entries/${e.target.dataset.id}`, { method: 'DELETE' });
     loadEntries();
+  }
+});
+
+deleteContractBtn.addEventListener('click', async () => {
+  deleteError.classList.add('hidden');
+
+  const signatures = entryCount === 1 ? '1 signature' : `${entryCount} signatures`;
+  const typed = prompt(
+    `This permanently deletes "${document.title}" and ${signatures}. This cannot be undone.\n\n` +
+    `Type DELETE to confirm:`
+  );
+  if (typed === null) return;
+  if (typed.trim().toUpperCase() !== 'DELETE') {
+    deleteError.textContent = 'Not deleted — you did not type DELETE.';
+    deleteError.classList.remove('hidden');
+    return;
+  }
+
+  deleteContractBtn.disabled = true;
+  deleteContractBtn.textContent = 'Deleting...';
+
+  try {
+    const res = await apiFetch(`/api/contracts/${contractId}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to delete contract');
+    }
+    location.href = 'index.html';
+  } catch (err) {
+    deleteError.textContent = err.message;
+    deleteError.classList.remove('hidden');
+    deleteContractBtn.disabled = false;
+    deleteContractBtn.textContent = 'Delete contract';
   }
 });
 
