@@ -5,6 +5,7 @@ const express = require('express');
 const session = require('cookie-session');
 const multer = require('multer');
 const supabase = require('./supabase');
+const { buildExportPdf } = require('./export-pdf');
 
 const BUCKET = 'contracts';
 const app = express();
@@ -164,6 +165,43 @@ app.get('/api/contracts/:id/file', requireAuth, async (req, res) => {
   const buffer = Buffer.from(await blob.arrayBuffer());
   res.setHeader('Content-Type', contract.mime_type);
   res.send(buffer);
+});
+
+app.get('/api/contracts/:id/export', requireAuth, async (req, res) => {
+  const { data: contract, error } = await supabase
+    .from('contracts')
+    .select('*')
+    .eq('id', req.params.id)
+    .single();
+  if (error || !contract) return res.status(404).json({ error: 'Contract not found' });
+
+  const { data: blob, error: downloadError } = await supabase.storage
+    .from(BUCKET)
+    .download(contract.storage_path);
+  if (downloadError) return res.status(404).json({ error: 'Contract file is missing' });
+
+  const { data: entries, error: entriesError } = await supabase
+    .from('entries')
+    .select('*')
+    .eq('contract_id', req.params.id)
+    .order('created_at', { ascending: true });
+  if (entriesError) return res.status(500).json({ error: entriesError.message });
+
+  try {
+    const { bytes } = await buildExportPdf({
+      contract: toClientContract(contract),
+      fileBytes: Buffer.from(await blob.arrayBuffer()),
+      entries: (entries || []).map(toClientEntry)
+    });
+
+    const safeName = contract.title.replace(/[^a-z0-9\-_ ]/gi, '').trim() || 'contract';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeName}.pdf"`);
+    res.send(Buffer.from(bytes));
+  } catch (err) {
+    console.error('Export failed:', err);
+    res.status(500).json({ error: 'Could not build the export PDF.' });
+  }
 });
 
 app.delete('/api/contracts/:id', requireAuth, async (req, res) => {

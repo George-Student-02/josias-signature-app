@@ -26,6 +26,9 @@ const renameBtn = document.getElementById('renameBtn');
 const renameError = document.getElementById('renameError');
 const titleHeading = document.getElementById('titleHeading');
 
+const exportBtn = document.getElementById('exportBtn');
+const exportError = document.getElementById('exportError');
+
 if (!contractId) {
   document.body.innerHTML = '<main><p>No contract specified.</p></main>';
   throw new Error('Missing contract id');
@@ -109,6 +112,39 @@ entryBody.addEventListener('click', async (e) => {
     if (!confirm('Delete this entry?')) return;
     await apiFetch(`/api/entries/${e.target.dataset.id}`, { method: 'DELETE' });
     loadEntries();
+  }
+});
+
+exportBtn.addEventListener('click', async () => {
+  exportError.classList.add('hidden');
+  exportBtn.disabled = true;
+  exportBtn.textContent = 'Building PDF...';
+  setWakingHandler((waking) => {
+    exportBtn.textContent = waking ? 'Waking up the app...' : 'Building PDF...';
+  });
+
+  try {
+    const res = await apiFetch(`/api/contracts/${contractId}/export`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Could not build the PDF');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${titleHeading.textContent}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    exportError.textContent = err.message;
+    exportError.classList.remove('hidden');
+  } finally {
+    setWakingHandler(null);
+    exportBtn.disabled = false;
+    exportBtn.textContent = 'Export PDF';
   }
 });
 
