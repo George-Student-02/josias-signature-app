@@ -55,7 +55,16 @@ async function loadContract() {
   } else if (contract.mimeType.startsWith('image/')) {
     viewerWrap.innerHTML = `<img class="viewer-img" src="${fileUrl}">`;
   } else {
-    viewerWrap.innerHTML = `<a href="${fileUrl}" target="_blank">Download ${escapeHtml(contract.originalName)}</a>`;
+    // Word docs and the like cannot be shown in a browser, so offer the file itself
+    // and say why, rather than leaving a blank box.
+    viewerWrap.innerHTML = `
+      <div class="empty">
+        <p><strong>${escapeHtml(contract.originalName)}</strong> can't be displayed here —
+        only PDFs and photos can be shown on screen.</p>
+        <p>You can still add signatures below, but to read the contract in the app,
+        re-upload it as a PDF.</p>
+        <p><a href="${fileUrl}" target="_blank">Download the file instead</a></p>
+      </div>`;
   }
 }
 

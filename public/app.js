@@ -52,6 +52,9 @@ uploadForm.addEventListener('submit', async (e) => {
 
   uploadBtn.disabled = true;
   uploadBtn.textContent = 'Uploading...';
+  setWakingHandler((waking) => {
+    uploadBtn.textContent = waking ? 'Waking up the app...' : 'Uploading...';
+  });
 
   try {
     const res = await apiFetch('/api/contracts', { method: 'POST', body: formData });
@@ -65,6 +68,7 @@ uploadForm.addEventListener('submit', async (e) => {
     uploadError.textContent = err.message;
     uploadError.classList.remove('hidden');
   } finally {
+    setWakingHandler(null);
     uploadBtn.disabled = false;
     uploadBtn.textContent = 'Upload contract';
   }

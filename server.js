@@ -2,7 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
-const session = require('express-session');
+const session = require('cookie-session');
 const multer = require('multer');
 const supabase = require('./supabase');
 
@@ -11,15 +11,16 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(express.json({ limit: '10mb' })); // signatures are base64 PNGs
+// The session lives in a signed cookie, not in server memory: the free hosting plan
+// sleeps and restarts the app constantly, and an in-memory store would log everyone
+// out every time that happened.
 app.use(session({
+  name: 'sess',
   secret: process.env.SESSION_SECRET || 'dev-secret-change-me',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 30 * 24 * 60 * 60 * 1000
-  }
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: 30 * 24 * 60 * 60 * 1000
 }));
 
 const upload = multer({
@@ -68,7 +69,8 @@ app.post('/api/login', (req, res) => {
 });
 
 app.post('/api/logout', (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
+  req.session = null;
+  res.json({ ok: true });
 });
 
 app.get('/api/session', (req, res) => {
@@ -225,6 +227,21 @@ app.delete('/api/entries/:id', requireAuth, async (req, res) => {
 
 // Static files last, so /api/* above always takes precedence.
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Turn upload failures into clean JSON instead of Express's default HTML stack trace.
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    const message = err.code === 'LIMIT_FILE_SIZE'
+      ? 'That file is too big. The limit is 25MB.'
+      : `Upload problem: ${err.message}`;
+    return res.status(400).json({ error: message });
+  }
+  if (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Something went wrong on the server.' });
+  }
+  next();
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
